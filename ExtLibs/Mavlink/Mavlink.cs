@@ -21,9 +21,9 @@ public partial class MAVLink
     public const int MAVLINK_LITTLE_ENDIAN = 1;
     public const int MAVLINK_BIG_ENDIAN = 0;
 
-    public const byte MAVLINK_STX = 253;
+    public const byte MAVLINK_STX = 0xFC;  ///253 0xFD
 
-    public const byte MAVLINK_STX_MAVLINK1 = 0xFE;
+    public const byte MAVLINK_STX_MAVLINK1 = 0xFD;  ///254 0xFE
 
     public const byte MAVLINK_ENDIAN = MAVLINK_LITTLE_ENDIAN;
 
@@ -37,7 +37,7 @@ public partial class MAVLink
         
     // msgid, name, crc, minlength, length, type
     public static message_info[] MAVLINK_MESSAGE_INFOS = new message_info[] {
-        new message_info(0, "HEARTBEAT", 50, 9, 9, typeof( mavlink_heartbeat_t )),
+        new message_info(0, "HEARTBEAT", 78, 10, 10, typeof( mavlink_heartbeat_t )),
         new message_info(1, "SYS_STATUS", 124, 31, 31, typeof( mavlink_sys_status_t )),
         new message_info(2, "SYSTEM_TIME", 137, 12, 12, typeof( mavlink_system_time_t )),
         new message_info(4, "PING", 237, 14, 14, typeof( mavlink_ping_t )),
@@ -6568,7 +6568,16 @@ public partial class MAVLink
         WINCH=42, 
         
     };
-    
+
+    ///<summary> MAV gcs type. </summary>
+    public enum MAV_GCS : byte
+    {
+        ///<summary> AUV_GCS | </summary>
+        [Description("AUV_GCS")]
+        AUV_GCS = 77,
+    }
+
+
     ///<summary> These flags encode the MAV mode. </summary>
     public enum MAV_MODE_FLAG: byte
     {
@@ -34187,24 +34196,25 @@ public partial class MAVLink
 
     
     /// extensions_start 0
-    [StructLayout(LayoutKind.Sequential,Pack=1,Size=9)]
+    [StructLayout(LayoutKind.Sequential,Pack=1,Size=10)]
     ///<summary> The heartbeat message shows that a system or component is present and responding. The type and autopilot fields (along with the message component id), allow the receiving system to treat further messages from this system appropriately (e.g. by laying out the user interface based on the autopilot). This microservice is documented at https://mavlink.io/en/services/heartbeat.html </summary>
     public struct mavlink_heartbeat_t
     {
         /// packet ordered constructor
-        public mavlink_heartbeat_t(uint custom_mode,/*MAV_TYPE*/byte type,/*MAV_AUTOPILOT*/byte autopilot,/*MAV_MODE_FLAG*/byte base_mode,/*MAV_STATE*/byte system_status,byte mavlink_version) 
+        public mavlink_heartbeat_t(uint custom_mode,/*MAV_TYPE*/byte type,/*MAV_AUTOPILOT*/byte autopilot,/*MAV_MODE_FLAG*/byte base_mode,/*MAV_STATE*/byte system_status, /*MAV_GCS*/byte gcs_type, byte mavlink_version) 
         {
             this.custom_mode = custom_mode;
             this.type = type;
             this.autopilot = autopilot;
             this.base_mode = base_mode;
             this.system_status = system_status;
+            this.gcs_type = gcs_type;
             this.mavlink_version = mavlink_version;
             
         }
         
         /// packet xml order
-        public static mavlink_heartbeat_t PopulateXMLOrder(/*MAV_TYPE*/byte type,/*MAV_AUTOPILOT*/byte autopilot,/*MAV_MODE_FLAG*/byte base_mode,uint custom_mode,/*MAV_STATE*/byte system_status,byte mavlink_version) 
+        public static mavlink_heartbeat_t PopulateXMLOrder(/*MAV_TYPE*/byte type,/*MAV_AUTOPILOT*/byte autopilot,/*MAV_MODE_FLAG*/byte base_mode,uint custom_mode,/*MAV_STATE*/byte system_status, /*MAV_GCS*/byte gcs_type, byte mavlink_version) 
         {
             var msg = new mavlink_heartbeat_t();
 
@@ -34213,6 +34223,7 @@ public partial class MAVLink
             msg.base_mode = base_mode;
             msg.custom_mode = custom_mode;
             msg.system_status = system_status;
+            msg.gcs_type = gcs_type;
             msg.mavlink_version = mavlink_version;
             
             return msg;
@@ -34249,10 +34260,16 @@ public partial class MAVLink
         //[FieldOffset(7)]
         public  /*MAV_STATE*/byte system_status;
 
+        /// <summary> GCS test   </summary>
+        [Units("")]
+        [Description("gcs_type")]
+        //[FieldOffset(8)]
+        public byte gcs_type;
+
         /// <summary>MAVLink version, not writable by user, gets added by protocol because of magic data type: uint8_t_mavlink_version   </summary>
         [Units("")]
         [Description("MAVLink version, not writable by user, gets added by protocol because of magic data type: uint8_t_mavlink_version")]
-        //[FieldOffset(8)]
+        //[FieldOffset(9)]
         public  byte mavlink_version;
     };
 

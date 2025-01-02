@@ -865,6 +865,19 @@ Mission Planner waits for 2 valid heartbeat packets before connecting
                             }
                         }
 
+                        /// test heartbeat gcs_type 
+                        mavlink_heartbeat_t hb_GCS_check = buffer.ToStructure<mavlink_heartbeat_t>();
+                        if (hb_GCS_check.gcs_type != (byte)MAV_GCS.AUV_GCS)
+                        {
+
+                            giveComport = false;
+                            getparams = false;
+                            exit = true;
+
+                            BaseStream.Close();
+
+                        }
+
                         if (exit)
                             break;
                     }
